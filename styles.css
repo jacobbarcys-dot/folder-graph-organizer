@@ -27,7 +27,7 @@
 /* Stats grid */
 .fgm-stats-grid {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(4, 1fr);
 	gap: 10px;
 	margin-bottom: 20px;
 }
@@ -55,7 +55,6 @@
 	letter-spacing: 0.04em;
 }
 
-/* Action buttons */
 .fgm-actions h3,
 .fgm-folder-list h3 {
 	font-size: 0.8em;
@@ -82,92 +81,38 @@
 	transition: opacity 0.15s;
 }
 
-.fgm-btn:hover {
-	opacity: 0.85;
-}
+.fgm-btn:hover { opacity: 0.85; }
+.fgm-btn-primary { background: var(--interactive-accent); color: var(--text-on-accent); }
+.fgm-btn-secondary { background: var(--background-modifier-border); color: var(--text-normal); }
+.fgm-btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--background-modifier-border); }
+.fgm-btn-xs { padding: 3px 9px; font-size: 0.78em; background: var(--background-modifier-border); color: var(--text-normal); border-radius: 4px; cursor: pointer; border: none; }
 
-.fgm-btn-primary {
-	background: var(--interactive-accent);
-	color: var(--text-on-accent);
-}
+.fgm-folder-list { margin-bottom: 16px; }
 
-.fgm-btn-secondary {
-	background: var(--background-modifier-border);
-	color: var(--text-normal);
-}
+.fgm-table { width: 100%; border-collapse: collapse; font-size: 0.83em; }
+.fgm-table th { text-align: left; padding: 6px 8px; color: var(--text-muted); border-bottom: 1px solid var(--background-modifier-border); font-weight: 500; }
+.fgm-table td { padding: 6px 8px; border-bottom: 1px solid var(--background-modifier-border-hover); color: var(--text-normal); }
+.fgm-path { color: var(--text-muted); font-size: 0.9em; font-family: var(--font-monospace); }
+.fgm-center { text-align: center; }
+.fgm-ok { color: var(--color-green); font-weight: 700; }
+.fgm-missing { color: var(--color-red); font-weight: 700; }
 
-.fgm-btn-ghost {
-	background: transparent;
-	color: var(--text-muted);
-	border: 1px solid var(--background-modifier-border);
-}
+/* Color swatches */
+.fgm-color-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
+.fgm-color-1 { background: #e05c5c; }
+.fgm-color-2 { background: #e08c3a; }
+.fgm-color-3 { background: #d4c22a; }
+.fgm-color-4 { background: #5cb85c; }
+.fgm-color-5 { background: #3ab8c8; }
+.fgm-color-6 { background: #5c7ae0; }
+.fgm-color-7 { background: #9b5ce0; }
+.fgm-color-8 { background: #e05c9b; }
 
-.fgm-btn-xs {
-	padding: 3px 9px;
-	font-size: 0.78em;
-	background: var(--background-modifier-border);
-	color: var(--text-normal);
-	border-radius: 4px;
-	cursor: pointer;
-	border: none;
-}
+/* Settings info */
+.fgm-settings-info { background: var(--background-secondary); border-radius: 8px; padding: 12px 14px; font-size: 0.85em; color: var(--text-muted); margin-top: 8px; }
+.fgm-settings-info p { margin: 0 0 8px 0; }
+.fgm-settings-info ol { margin: 0; padding-left: 18px; }
+.fgm-settings-info li { margin-bottom: 4px; }
 
-/* Table */
-.fgm-folder-list {
-	margin-bottom: 16px;
-}
-
-.fgm-table {
-	width: 100%;
-	border-collapse: collapse;
-	font-size: 0.83em;
-}
-
-.fgm-table th {
-	text-align: left;
-	padding: 6px 8px;
-	color: var(--text-muted);
-	border-bottom: 1px solid var(--background-modifier-border);
-	font-weight: 500;
-}
-
-.fgm-table td {
-	padding: 6px 8px;
-	border-bottom: 1px solid var(--background-modifier-border-hover);
-	color: var(--text-normal);
-}
-
-.fgm-path {
-	color: var(--text-muted);
-	font-size: 0.9em;
-	font-family: var(--font-monospace);
-}
-
-.fgm-center {
-	text-align: center;
-}
-
-.fgm-ok {
-	color: var(--color-green);
-	font-weight: 700;
-}
-
-.fgm-missing {
-	color: var(--color-red);
-	font-weight: 700;
-}
-
-/* Callout */
-.fgm-callout {
-	background: var(--background-secondary);
-	border-left: 3px solid var(--interactive-accent);
-	border-radius: 0 6px 6px 0;
-	padding: 10px 12px;
-	font-size: 0.82em;
-	color: var(--text-muted);
-	margin-top: 8px;
-}
-
-.fgm-callout strong {
-	color: var(--text-normal);
-}
+.fgm-callout { background: var(--background-secondary); border-left: 3px solid var(--interactive-accent); border-radius: 0 6px 6px 0; padding: 10px 12px; font-size: 0.82em; color: var(--text-muted); margin-top: 8px; }
+.fgm-callout strong { color: var(--text-normal); }
