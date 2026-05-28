@@ -3,7 +3,7 @@
 	"name": "Folder Graph Organizer",
 	"version": "1.1.1",
 	"minAppVersion": "1.4.0",
-	"description": "Automatically creates folder index notes and links all notes to them, creating clean folder-cluster bubbles in Obsidian's graph view.",
+	"description": "Automatically creates folder index notes and links all notes to them, creating clean folder-cluster bubbles in the graph view.",
 	"author": "dogdrone",
 	"authorUrl": "https://github.com/jacobbarcys-dot",
 	"isDesktopOnly": false
