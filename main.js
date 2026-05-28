@@ -42,38 +42,19 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
     this.addRibbonIcon("git-fork", "Folder Graph Organizer", () => {
       new FolderGraphModal(this.app, this).open();
     });
-    this.addCommand({
-      id: "create-folder-index",
-      name: "Create index note for current folder",
-      callback: () => this.createIndexForActiveFolder()
-    });
-    this.addCommand({
-      id: "scan-and-link-vault",
-      name: "Scan vault and link all notes to folder indexes",
-      callback: () => this.scanAndLinkVault()
-    });
-    this.addCommand({
-      id: "create-all-indexes",
-      name: "Create index notes for all folders",
-      callback: () => this.createAllFolderIndexes()
-    });
-    this.addCommand({
-      id: "open-dashboard",
-      name: "Open Folder Graph dashboard",
-      callback: () => new FolderGraphModal(this.app, this).open()
-    });
+    this.addCommand({ id: "create-folder-index", name: "Create index note for current folder", callback: () => this.createIndexForActiveFolder() });
+    this.addCommand({ id: "scan-and-link-vault", name: "Scan vault and link all notes to folder indexes", callback: () => this.scanAndLinkVault() });
+    this.addCommand({ id: "create-all-indexes", name: "Create index notes for all folders", callback: () => this.createAllFolderIndexes() });
+    this.addCommand({ id: "open-dashboard", name: "Open Folder Graph dashboard", callback: () => new FolderGraphModal(this.app, this).open() });
     if (this.settings.autoLinkOnCreate) {
-      this.registerEvent(
-        this.app.vault.on("create", async (file) => {
-          if (file instanceof import_obsidian.TFile) {
-            if (file.extension === "md") {
-              await this.autoLinkNewNote(file);
-            } else if (file.extension === "canvas" && this.settings.linkCanvases) {
-              await this.autoLinkNewCanvas(file);
-            }
-          }
-        })
-      );
+      this.registerEvent(this.app.vault.on("create", async (file) => {
+        if (file instanceof import_obsidian.TFile) {
+          if (file.extension === "md")
+            await this.autoLinkNewNote(file);
+          else if (file.extension === "canvas" && this.settings.linkCanvases)
+            await this.autoLinkNewCanvas(file);
+        }
+      }));
     }
     this.addSettingTab(new FolderGraphSettingTab(this.app, this));
   }
@@ -112,8 +93,27 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
     const colorId = this.getFolderColorId(folder.name);
     const colorTag = `folder-color-${colorId}`;
     const parent = folder.parent;
-    const upLink = parent && parent.path !== "/" ? `${this.settings.backlinkProperty}:: [[${parent.name}]]\n\n` : "";
-    return `---\ntags:\n  - ${tag}\n  - ${colorTag}\ncssclass: folder-index\n---\n\n${upLink}# ${folder.name}\n\n> Index note for the **${folder.name}** folder.\n\n## Notes\n\n## Subfolders\n\n## Canvases\n\n`;
+    const upLink = parent && parent.path !== "/" ? `${this.settings.backlinkProperty}:: [[${parent.name}]]
+
+` : "";
+    return `---
+tags:
+  - ${tag}
+  - ${colorTag}
+cssclass: folder-index
+---
+
+${upLink}# ${folder.name}
+
+> Index note for the **${folder.name}** folder.
+
+## Notes
+
+## Subfolders
+
+## Canvases
+
+`;
   }
   async createIndexForActiveFolder() {
     const active = this.app.workspace.getActiveFile();
@@ -146,9 +146,7 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
   async scanAndLinkVault() {
     const folders = this.getAllFolders();
     let linked = 0;
-    const sorted = folders.filter((f) => f.path !== "/").sort(
-      (a, b) => b.path.split("/").length - a.path.split("/").length
-    );
+    const sorted = folders.filter((f) => f.path !== "/").sort((a, b) => b.path.split("/").length - a.path.split("/").length);
     for (const folder of sorted) {
       const notes = this.getNotesInFolder(folder);
       const canvases = this.getCanvasesInFolder(folder);
@@ -167,9 +165,7 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
     if (!indexFile)
       return 0;
     let count = 0;
-    const notes = this.getNotesInFolder(folder).filter(
-      (f) => f.path !== indexPath
-    );
+    const notes = this.getNotesInFolder(folder).filter((f) => f.path !== indexPath);
     for (const note of notes) {
       if (await this.addBacklinkToNote(note, folder))
         count++;
@@ -208,31 +204,36 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
         const frontmatter = content.slice(0, end);
         const rest = content.slice(end);
         if (!frontmatter.includes(`${prop}:`)) {
-          newContent = `${frontmatter}${prop}:: ${linkText}\n${rest}`;
+          newContent = `${frontmatter}${prop}:: ${linkText}
+${rest}`;
         } else {
           return false;
         }
       } else {
-        newContent = `${prop}:: ${linkText}\n\n${content}`;
+        newContent = `${prop}:: ${linkText}
+
+${content}`;
       }
     } else {
-      newContent = `${prop}:: ${linkText}\n\n${content}`;
+      newContent = `${prop}:: ${linkText}
+
+${content}`;
     }
     await this.app.vault.modify(file, newContent);
     return true;
   }
   async addCanvasLinkToIndex(indexFile, canvas) {
     const content = await this.app.vault.read(indexFile);
-    const link = `[[${canvas.basename}]]`;
+    const link = `[[${canvas.name}]]`;
     if (content.includes(link))
       return;
     if (content.includes("## Canvases")) {
-      await this.app.vault.modify(
-        indexFile,
-        content.replace("## Canvases", `## Canvases\n- ${link}`)
-      );
+      await this.app.vault.modify(indexFile, content.replace("## Canvases", `## Canvases
+- ${link}`));
     } else {
-      await this.app.vault.modify(indexFile, content + `\n- ${link}\n`);
+      await this.app.vault.modify(indexFile, content + `
+- ${link}
+`);
     }
   }
   async addItemToIndex(indexFile, basename, section) {
@@ -242,12 +243,12 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
       return;
     const header = `## ${section}`;
     if (content.includes(header)) {
-      await this.app.vault.modify(
-        indexFile,
-        content.replace(header, `${header}\n- ${link}`)
-      );
+      await this.app.vault.modify(indexFile, content.replace(header, `${header}
+- ${link}`));
     } else {
-      await this.app.vault.modify(indexFile, content + `\n- ${link}\n`);
+      await this.app.vault.modify(indexFile, content + `
+- ${link}
+`);
     }
   }
   async autoLinkNewNote(file) {
@@ -272,9 +273,8 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
     setTimeout(async () => {
       const indexPath = this.getIndexNotePath(folder);
       const indexFile = this.app.vault.getAbstractFileByPath(indexPath);
-      if (indexFile instanceof import_obsidian.TFile) {
+      if (indexFile instanceof import_obsidian.TFile)
         await this.addCanvasLinkToIndex(indexFile, file);
-      }
     }, 500);
   }
   getAllFolders() {
@@ -290,14 +290,10 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
     return folders;
   }
   getNotesInFolder(folder) {
-    return folder.children.filter(
-      (f) => f instanceof import_obsidian.TFile && f.extension === "md"
-    );
+    return folder.children.filter((f) => f instanceof import_obsidian.TFile && f.extension === "md");
   }
   getCanvasesInFolder(folder) {
-    return folder.children.filter(
-      (f) => f instanceof import_obsidian.TFile && f.extension === "canvas"
-    );
+    return folder.children.filter((f) => f instanceof import_obsidian.TFile && f.extension === "canvas");
   }
   getSubfolders(folder) {
     return folder.children.filter((f) => f instanceof import_obsidian.TFolder);
@@ -307,16 +303,7 @@ var FolderGraphPlugin = class extends import_obsidian.Plugin {
       const indexPath = this.getIndexNotePath(folder);
       const hasIndex = !!this.app.vault.getAbstractFileByPath(indexPath);
       const colorId = this.getFolderColorId(folder.name);
-      return {
-        folder: folder.name,
-        path: folder.path,
-        noteCount: this.getNotesInFolder(folder).length,
-        canvasCount: this.getCanvasesInFolder(folder).length,
-        subfolderCount: this.getSubfolders(folder).length,
-        hasIndex,
-        depth: folder.path.split("/").length,
-        colorId
-      };
+      return { folder: folder.name, path: folder.path, noteCount: this.getNotesInFolder(folder).length, canvasCount: this.getCanvasesInFolder(folder).length, subfolderCount: this.getSubfolders(folder).length, hasIndex, depth: folder.path.split("/").length, colorId };
     });
   }
 };
@@ -331,43 +318,27 @@ var FolderGraphModal = class extends import_obsidian.Modal {
     contentEl.addClass("folder-graph-modal");
     const header = contentEl.createDiv("fgm-header");
     header.createEl("h2", { text: "Folder Graph Organizer" });
-    header.createEl("p", {
-      text: "Organize your vault so each folder becomes a cluster in graph view.",
-      cls: "fgm-subtitle"
-    });
+    header.createEl("p", { text: "Organize your vault so each folder becomes a cluster in graph view.", cls: "fgm-subtitle" });
     const stats = this.plugin.getFolderStats();
     const statsGrid = contentEl.createDiv("fgm-stats-grid");
-    const totalFolders = stats.length;
-    const withIndex = stats.filter((s) => s.hasIndex).length;
-    const totalNotes = stats.reduce((sum, s) => sum + s.noteCount, 0);
-    const totalCanvases = stats.reduce((sum, s) => sum + s.canvasCount, 0);
-    this.statCard(statsGrid, String(totalFolders), "Total Folders");
-    this.statCard(statsGrid, String(withIndex), "Have Index Notes");
-    this.statCard(statsGrid, String(totalNotes), "Notes");
-    this.statCard(statsGrid, String(totalCanvases), "Canvases");
+    this.statCard(statsGrid, String(stats.length), "Total Folders");
+    this.statCard(statsGrid, String(stats.filter((s) => s.hasIndex).length), "Have Index Notes");
+    this.statCard(statsGrid, String(stats.reduce((sum, s) => sum + s.noteCount, 0)), "Notes");
+    this.statCard(statsGrid, String(stats.reduce((sum, s) => sum + s.canvasCount, 0)), "Canvases");
     const actions = contentEl.createDiv("fgm-actions");
     actions.createEl("h3", { text: "Actions" });
     const btnRow = actions.createDiv("fgm-btn-row");
-    const btnAll = btnRow.createEl("button", {
-      text: "Create All Index Notes",
-      cls: "fgm-btn fgm-btn-primary"
-    });
+    const btnAll = btnRow.createEl("button", { text: "Create All Index Notes", cls: "fgm-btn fgm-btn-primary" });
     btnAll.onclick = async () => {
       await this.plugin.createAllFolderIndexes();
       this.onOpen();
     };
-    const btnScan = btnRow.createEl("button", {
-      text: "Scan & Link Everything",
-      cls: "fgm-btn fgm-btn-secondary"
-    });
+    const btnScan = btnRow.createEl("button", { text: "Scan & Link Everything", cls: "fgm-btn fgm-btn-secondary" });
     btnScan.onclick = async () => {
       await this.plugin.scanAndLinkVault();
       this.onOpen();
     };
-    const btnCurrent = btnRow.createEl("button", {
-      text: "Index Current Folder",
-      cls: "fgm-btn fgm-btn-ghost"
-    });
+    const btnCurrent = btnRow.createEl("button", { text: "Index Current Folder", cls: "fgm-btn fgm-btn-ghost" });
     btnCurrent.onclick = async () => {
       await this.plugin.createIndexForActiveFolder();
       this.onOpen();
@@ -377,32 +348,23 @@ var FolderGraphModal = class extends import_obsidian.Modal {
       listSection.createEl("h3", { text: "Folder Status" });
       const table = listSection.createEl("table", { cls: "fgm-table" });
       const thead = table.createEl("thead").createEl("tr");
-      ["", "Folder", "Notes", "Canvas", "Sub", "Index", ""].forEach((h) => {
-        thead.createEl("th", { text: h });
-      });
+      ["", "Folder", "Notes", "Canvas", "Sub", "Index", ""].forEach((h) => thead.createEl("th", { text: h }));
       const tbody = table.createEl("tbody");
       stats.forEach((stat) => {
         const row = tbody.createEl("tr");
         const indent = "\xA0\xA0".repeat(Math.max(0, stat.depth - 1));
-        const swatchCell = row.createEl("td");
-        swatchCell.createEl("span", { cls: `fgm-color-swatch fgm-color-${stat.colorId}` });
+        row.createEl("td").createEl("span", { cls: `fgm-color-swatch fgm-color-${stat.colorId}` });
         row.createEl("td", { text: indent + stat.path, cls: "fgm-path" });
         row.createEl("td", { text: String(stat.noteCount), cls: "fgm-center" });
         row.createEl("td", { text: String(stat.canvasCount), cls: "fgm-center" });
         row.createEl("td", { text: String(stat.subfolderCount), cls: "fgm-center" });
-        row.createEl("td", { cls: "fgm-center" }).createEl("span", {
-          text: stat.hasIndex ? "✓" : "✗",
-          cls: stat.hasIndex ? "fgm-ok" : "fgm-missing"
-        });
+        row.createEl("td", { cls: "fgm-center" }).createEl("span", { text: stat.hasIndex ? "\u2713" : "\u2717", cls: stat.hasIndex ? "fgm-ok" : "fgm-missing" });
         const actionCell = row.createEl("td");
         if (!stat.hasIndex) {
-          const btn = actionCell.createEl("button", {
-            text: "Create",
-            cls: "fgm-btn fgm-btn-xs"
-          });
+          const btn = actionCell.createEl("button", { text: "Create", cls: "fgm-btn fgm-btn-xs" });
           btn.onclick = async () => {
             const folder = this.app.vault.getAbstractFileByPath(stat.path);
-            if (folder && folder instanceof import_obsidian.TFolder) {
+            if (folder instanceof import_obsidian.TFolder) {
               await this.plugin.getOrCreateIndexNote(folder);
               await this.plugin.linkFolderContentsToIndex(folder);
               this.onOpen();
@@ -413,9 +375,7 @@ var FolderGraphModal = class extends import_obsidian.Modal {
     }
     const tip = contentEl.createDiv("fgm-callout");
     tip.createEl("strong", { text: "Graph View tip: " });
-    tip.createSpan({
-      text: `In Graph View → Groups, add groups for tag:${this.plugin.settings.indexTag} to highlight all hubs, or add groups for tag:folder-color-1 through tag:folder-color-8 to give each folder cluster its own distinct color.`
-    });
+    tip.createSpan({ text: `In Graph View \u2192 Groups, add groups for tag:${this.plugin.settings.indexTag} to highlight all hubs, or add groups for tag:folder-color-1 through tag:folder-color-8 to give each folder cluster its own distinct color.` });
   }
   statCard(container, value, label) {
     const card = container.createDiv("fgm-stat-card");
@@ -435,51 +395,31 @@ var FolderGraphSettingTab = class extends import_obsidian.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "Folder Graph Organizer" });
-    new import_obsidian.Setting(containerEl).setName("Backlink property name").setDesc("The inline property used to link notes back to their folder index").addText(
-      (text) => text.setPlaceholder("up").setValue(this.plugin.settings.backlinkProperty).onChange(async (value) => {
-        this.plugin.settings.backlinkProperty = value || "up";
-        await this.plugin.saveSettings();
-      })
-    );
-    new import_obsidian.Setting(containerEl).setName("Index note tag").setDesc(
-      "Tag applied to all index notes (use in Graph View group filters)"
-    ).addText(
-      (text) => text.setPlaceholder("folder-index").setValue(this.plugin.settings.indexTag).onChange(async (value) => {
-        this.plugin.settings.indexTag = value || "folder-index";
-        await this.plugin.saveSettings();
-      })
-    );
-    new import_obsidian.Setting(containerEl).setName("Link subfolders to parent").setDesc(
-      "Each subfolder's index note gets an up:: link to its parent folder's index, connecting the clusters in graph view"
-    ).addToggle(
-      (toggle) => toggle.setValue(this.plugin.settings.linkSubfolders).onChange(async (value) => {
-        this.plugin.settings.linkSubfolders = value;
-        await this.plugin.saveSettings();
-      })
-    );
-    new import_obsidian.Setting(containerEl).setName("Link canvas files").setDesc(
-      "Canvas files in a folder get listed in that folder's index note"
-    ).addToggle(
-      (toggle) => toggle.setValue(this.plugin.settings.linkCanvases).onChange(async (value) => {
-        this.plugin.settings.linkCanvases = value;
-        await this.plugin.saveSettings();
-      })
-    );
-    new import_obsidian.Setting(containerEl).setName("Auto-link new files").setDesc(
-      "Automatically link newly created notes and canvases to their folder index"
-    ).addToggle(
-      (toggle) => toggle.setValue(this.plugin.settings.autoLinkOnCreate).onChange(async (value) => {
-        this.plugin.settings.autoLinkOnCreate = value;
-        await this.plugin.saveSettings();
-      })
-    );
+    new import_obsidian.Setting(containerEl).setName("Backlink property name").setDesc("The inline property used to link notes back to their folder index").addText((text) => text.setPlaceholder("up").setValue(this.plugin.settings.backlinkProperty).onChange(async (value) => {
+      this.plugin.settings.backlinkProperty = value || "up";
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Index note tag").setDesc("Tag applied to all index notes (use in Graph View group filters)").addText((text) => text.setPlaceholder("folder-index").setValue(this.plugin.settings.indexTag).onChange(async (value) => {
+      this.plugin.settings.indexTag = value || "folder-index";
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Link subfolders to parent").setDesc("Each subfolder's index note gets an up:: link to its parent folder's index, connecting the clusters in graph view").addToggle((toggle) => toggle.setValue(this.plugin.settings.linkSubfolders).onChange(async (value) => {
+      this.plugin.settings.linkSubfolders = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Link canvas files").setDesc("Canvas files in a folder get listed in that folder's index note").addToggle((toggle) => toggle.setValue(this.plugin.settings.linkCanvases).onChange(async (value) => {
+      this.plugin.settings.linkCanvases = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Auto-link new files").setDesc("Automatically link newly created notes and canvases to their folder index").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoLinkOnCreate).onChange(async (value) => {
+      this.plugin.settings.autoLinkOnCreate = value;
+      await this.plugin.saveSettings();
+    }));
     containerEl.createEl("h3", { text: "Graph View Color Groups" });
     const info = containerEl.createDiv("fgm-settings-info");
-    info.createEl("p", {
-      text: "Each folder index is tagged with folder-color-1 through folder-color-8 (assigned by folder name). To color them in Graph View:"
-    });
+    info.createEl("p", { text: "Each folder index is tagged with folder-color-1 through folder-color-8 (assigned by folder name). To color them in Graph View:" });
     const ol = info.createEl("ol");
-    ol.createEl("li", { text: 'Open Graph View → click the sliders icon → "Groups"' });
+    ol.createEl("li", { text: 'Open Graph View \u2192 click the sliders icon \u2192 "Groups"' });
     ol.createEl("li", { text: "Add a group, set query to: tag:folder-color-1" });
     ol.createEl("li", { text: "Pick a color, repeat for folder-color-2 through folder-color-8" });
   }

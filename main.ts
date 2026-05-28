@@ -155,7 +155,8 @@ export default class FolderGraphPlugin extends Plugin {
 	}
 	async addCanvasLinkToIndex(indexFile: TFile, canvas: TFile) {
 		const content = await this.app.vault.read(indexFile);
-		const link = `[[${canvas.basename}]]`;
+		// Must include .canvas extension so Obsidian links to the canvas file, not a new .md
+		const link = `[[${canvas.name}]]`;
 		if (content.includes(link)) return;
 		if (content.includes("## Canvases")) {
 			await this.app.vault.modify(indexFile, content.replace("## Canvases", `## Canvases\n- ${link}`));
